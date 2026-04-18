@@ -9,7 +9,7 @@ def cargar_dataset(ruta=None):
     if ruta is None:
         # Ruta por defecto: mismo directorio que este script
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
-        nombre_archivo = 'produccion-de-pozos-de-gas-y-petroleo-no-convencional-_Autoguardado_.csv'
+        nombre_archivo = 'produccin-de-pozos-de-gas-y-petrleo-unificado.csv'
         ruta = os.path.join(directorio_actual, nombre_archivo)
 
     print(f"Cargando dataset desde: {ruta}")
@@ -41,5 +41,5 @@ def auditar_categoricas(df, columnas):
 # Si se ejecuta directamente el script, hacemos la auditoría original
 if __name__ == "__main__":
     df = cargar_dataset()
-    columnas_a_auditar = ['cuenca', 'tipo_de_recurso', 'tipoextraccion']
+    columnas_a_auditar = ['cuenca', 'tipo_de_recurso', 'tipoextraccion', 'tipopozo']
     auditar_categoricas(df, columnas_a_auditar)

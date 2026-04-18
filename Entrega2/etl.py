@@ -1,86 +1,107 @@
 import pandas as pd
 import os
-from probando_CD1 import cargar_dataset, auditar_categoricas  # Asegurate de que el nombre del módulo coincida
+from probando_CD1 import cargar_dataset, auditar_categoricas
+
+# ------------------------------------------------------------
+# Configuración para el nuevo dataset
+# ------------------------------------------------------------
+COLUMNAS_A_CONSERVAR = [
+    "prod_pet", "prod_gas", "prod_agua", "iny_agua",
+    "iny_gas", "iny_co2", "iny_otro", "tef",
+    "tipoextraccion", "profundidad", "cuenca",
+    "tipo_de_recurso", "tipopozo"
+]
 
 # ------------------------------------------------------------
 # Funciones de limpieza
 # ------------------------------------------------------------
+def seleccionar_columnas(df):
+    """Mantiene únicamente las columnas necesarias."""
+    columnas_existentes = [col for col in COLUMNAS_A_CONSERVAR if col in df.columns]
+    faltantes = set(COLUMNAS_A_CONSERVAR) - set(columnas_existentes)
+    if faltantes:
+        print(f"⚠️ Columnas no encontradas: {faltantes}")
+    return df[columnas_existentes]
 
 def convertir_coma_a_punto(df):
-    """
-    Reemplaza la coma decimal por punto en las columnas numéricas que estén como texto.
-    Luego convierte las columnas a tipo float.
-    """
+    """Convierte coma decimal a punto en columnas numéricas."""
     columnas_numericas = [
         'prod_pet', 'prod_gas', 'prod_agua', 'iny_agua',
         'iny_gas', 'iny_co2', 'iny_otro', 'tef', 'profundidad'
     ]
     for col in columnas_numericas:
         if col in df.columns:
-            # Si la columna es de tipo object, puede tener comas
             if df[col].dtype == 'object':
                 df[col] = df[col].astype(str).str.replace(',', '.', regex=False)
-            # Convertir a numérico, forzando errores a NaN
             df[col] = pd.to_numeric(df[col], errors='coerce')
     return df
 
 def filtrar_prod_pet_no_cero(df):
-    """
-    Elimina las filas donde la producción de petróleo (prod_pet) sea 0 o 0.0.
-    """
+    """Elimina filas con prod_pet igual a 0 o NaN."""
     if 'prod_pet' in df.columns:
-        # Asegurar que sea numérico
         df['prod_pet'] = pd.to_numeric(df['prod_pet'], errors='coerce')
         df = df[df['prod_pet'] != 0]
-        df = df.dropna(subset=['prod_pet'])  # también elimina NaN
+        df = df.dropna(subset=['prod_pet'])
+    return df
+
+def filtrar_tipopozo_petrolifero(df):
+    """Conserva solo pozos Petrolíferos."""
+    if 'tipopozo' in df.columns:
+        df = df[df['tipopozo'] == 'Petrolífero']
+    else:
+        print("⚠️ Columna 'tipopozo' no encontrada, no se aplica filtro.")
     return df
 
 def limpiar_dataset(df):
-    """
-    Aplica todas las transformaciones de limpieza en orden.
-    """
+    """Pipeline completo de limpieza."""
+    df = seleccionar_columnas(df)
     df = convertir_coma_a_punto(df)
     df = filtrar_prod_pet_no_cero(df)
+    df = filtrar_tipopozo_petrolifero(df)
+    contar_filas_que_tengan_iny_gas(df)
     return df
 
-# ------------------------------------------------------------
-# Función para guardar dataset limpio
-# ------------------------------------------------------------
+def contar_filas_que_tengan_iny_gas(df):
+    """Cuenta cuántas filas tienen iny_gas con valor distinto de 0 o NaN."""
+    if 'iny_gas' in df.columns:
+        df['iny_gas'] = pd.to_numeric(df['iny_gas'], errors='coerce')
+        conteo = df[df['iny_gas'] != 0]['iny_gas'].count()
+        print(f"📊 Filas con iny_gas distinto de 0: {conteo}")
+    else:
+        print("⚠️ Columna 'iny_gas' no encontrada, no se puede contar.")
 
+# ------------------------------------------------------------
+# Guardado
+# ------------------------------------------------------------
 def guardar_dataset_limpio(df, ruta_original, carpeta_salida="csv limpio"):
-    """
-    Guarda el DataFrame limpio en una subcarpeta con el prefijo 'LIMPIO-'.
-    """
-    # Crear carpeta si no existe
     os.makedirs(carpeta_salida, exist_ok=True)
-
-    # Obtener nombre base del archivo original
     nombre_base = os.path.basename(ruta_original)
     nombre_limpio = f"LIMPIO-{nombre_base}"
     ruta_guardado = os.path.join(carpeta_salida, nombre_limpio)
-
     df.to_csv(ruta_guardado, index=False, encoding='utf-8')
     print(f"✅ Dataset limpio guardado en: {ruta_guardado}")
     return ruta_guardado
 
 # ------------------------------------------------------------
-# Main del proceso ETL
+# Main
 # ------------------------------------------------------------
-
 def main():
-    # 1. Cargar dataset original (usando la función del otro módulo)
-    ruta_original = None  # Usa el valor por defecto definido en cargar_dataset()
+    # 1. Cargar dataset original (usará el nuevo nombre por defecto)
+    ruta_original = None  # usamos el default de probando_CD1
     df_original = cargar_dataset(ruta_original)
 
-    # 2. Aplicar limpieza
+    # 2. Limpiar
     print("\n🧹 Iniciando limpieza del dataset...")
-    df_limpio = limpiar_dataset(df_original.copy())  # Copia para no modificar el original
+    df_limpio = limpiar_dataset(df_original.copy())
 
-    # 3. Guardar dataset limpio
-    ruta_guardado = guardar_dataset_limpio(df_limpio, ruta_original or "produccion-de-pozos-de-gas-y-petroleo-no-convencional-_Autoguardado_.csv")
+    # 3. Guardar
+    ruta_guardado = guardar_dataset_limpio(
+        df_limpio,
+        ruta_original or "produccin-de-pozos-de-gas-y-petrleo-unificado.csv"
+    )
 
     # 4. Auditoría comparativa
-    columnas_categoricas = ['cuenca', 'tipo_de_recurso', 'tipoextraccion']
+    columnas_categoricas = ['cuenca', 'tipo_de_recurso', 'tipoextraccion', 'tipopozo']
 
     print("\n🔍 AUDITORÍA DEL DATASET ORIGINAL")
     auditar_categoricas(df_original, columnas_categoricas)
