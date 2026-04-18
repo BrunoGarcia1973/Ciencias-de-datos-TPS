@@ -6,8 +6,7 @@ from probando_CD1 import cargar_dataset, auditar_categoricas
 # Configuración para el nuevo dataset
 # ------------------------------------------------------------
 COLUMNAS_A_CONSERVAR = [
-    "prod_pet", "prod_gas", "prod_agua", "iny_agua",
-    "iny_gas", "iny_co2", "iny_otro", "tef",
+    "prod_pet", "prod_gas", "prod_agua", "tef",
     "tipoextraccion", "profundidad", "cuenca",
     "tipo_de_recurso", "tipopozo"
 ]
@@ -58,17 +57,8 @@ def limpiar_dataset(df):
     df = convertir_coma_a_punto(df)
     df = filtrar_prod_pet_no_cero(df)
     df = filtrar_tipopozo_petrolifero(df)
-    contar_filas_que_tengan_iny_gas(df)
     return df
 
-def contar_filas_que_tengan_iny_gas(df):
-    """Cuenta cuántas filas tienen iny_gas con valor distinto de 0 o NaN."""
-    if 'iny_gas' in df.columns:
-        df['iny_gas'] = pd.to_numeric(df['iny_gas'], errors='coerce')
-        conteo = df[df['iny_gas'] != 0]['iny_gas'].count()
-        print(f"📊 Filas con iny_gas distinto de 0: {conteo}")
-    else:
-        print("⚠️ Columna 'iny_gas' no encontrada, no se puede contar.")
 
 # ------------------------------------------------------------
 # Guardado
