@@ -6,6 +6,7 @@ def cargar_dataset(ruta=None):
     Carga el dataset desde la ruta especificada.
     Si no se pasa ruta, usa el archivo por defecto ubicado en el mismo directorio del script.
     """
+    
     if ruta is None:
         # Ruta por defecto: mismo directorio que este script
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
