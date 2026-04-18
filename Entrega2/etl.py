@@ -97,7 +97,7 @@ def main():
     # 3. Guardar
     ruta_guardado = guardar_dataset_limpio(
         df_limpio,
-        ruta_original or "produccin-de-pozos-de-gas-y-petrleo-unificado.csv"
+        ruta_original or "produccion-de-pozos-de-gas-y-petroleo-unificado.csv.gz"
     )
 
     # 4. Auditoría comparativa

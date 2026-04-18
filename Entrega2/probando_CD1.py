@@ -9,7 +9,7 @@ def cargar_dataset(ruta=None):
     if ruta is None:
         # Ruta por defecto: mismo directorio que este script
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
-        nombre_archivo = 'produccin-de-pozos-de-gas-y-petrleo-unificado.csv'
+        nombre_archivo = 'produccion-de-pozos-de-gas-y-petroleo-unificado.csv.gz'
         ruta = os.path.join(directorio_actual, nombre_archivo)
 
     print(f"Cargando dataset desde: {ruta}")
